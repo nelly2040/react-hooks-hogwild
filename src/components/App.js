@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import HogList from './components/HogList';
-import HogFilter from './components/HogFilter';
-import HogSort from './components/HogSort';
-import HogForm from './components/HogForm';
-import { hogData } from './porkers_data';
+import HogList from './HogList';
+import HogFilter from './HogFilter';
+import HogSort from './HogSort';
+import HogForm from './HogForm';
+import porkersData from './porkers_data.js';
 
 function App() {
-  const [hogs, setHogs] = useState(hogData);
-  const [filteredHogs, setFilteredHogs] = useState(hogs);
-  const [isGreasedFilter, setIsGreasedFilter] = useState(false);
-  const [sortBy, setSortBy] = useState('name');
-  const [hiddenHogs, setHiddenHogs] = useState(new Set());
+  const [hogs, setHogs] = useState(porkersData); // Initial hog data from porkers_data.js
+  const [filteredHogs, setFilteredHogs] = useState(hogs); // State for filtered hogs
+  const [isGreasedFilter, setIsGreasedFilter] = useState(false); // Filter state
+  const [sortBy, setSortBy] = useState('name'); // Sort state ('name' or 'weight')
+  const [hiddenHogs, setHiddenHogs] = useState(new Set()); // Set to track hidden hogs
 
   const handleFilterChange = (isGreased) => {
     setIsGreasedFilter(isGreased);
@@ -23,33 +23,42 @@ function App() {
   };
 
   const filterHogs = () => {
-    const filtered = hogs.filter(hog => {
-      return !isGreasedFilter || hog.greased;
+    const filtered = hogs.filter((hog) => {
+      if (isGreasedFilter) {
+        return hog.greased;
+      }
+      return true;
     });
     setFilteredHogs(filtered);
   };
 
   const sortHogs = () => {
     const sorted = [...filteredHogs].sort((a, b) => {
-      return sortBy === 'name' ? a.name.localeCompare(b.name) : a.weight - b.weight;
+      if (sortBy === 'name') {
+        return a.name.localeCompare(b.name);
+      } else {
+        return a.weight - b.weight;
+      }
     });
     setFilteredHogs(sorted);
   };
 
   const handleHideHog = (name) => {
-    setHiddenHogs(prev => {
-      const newSet = new Set(prev);
-      newSet.has(name) ? newSet.delete(name) : newSet.add(name);
-      return newSet;
-    });
+    const newHiddenHogs = new Set(hiddenHogs);
+    if (newHiddenHogs.has(name)) {
+      newHiddenHogs.delete(name);
+    } else {
+      newHiddenHogs.add(name);
+    }
+    setHiddenHogs(newHiddenHogs);
   };
 
   const handleAddHog = (newHog) => {
-    setHogs(prev => [...prev, newHog]);
+    setHogs([...hogs, newHog]);
     filterHogs();
   };
 
-  const visibleHogs = filteredHogs.filter(hog => !hiddenHogs.has(hog.name));
+  const visibleHogs = filteredHogs.filter((hog) => !hiddenHogs.has(hog.name));
 
   return (
     <div className="ui grid container">
